@@ -84,6 +84,26 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "float": "float 6s ease-in-out infinite",
+        "pulse-glow": "pulse-glow 2s infinite",
+        "fade-in-up": "fadeInUp 0.8s ease-out forwards",
+        "fade-in-down": "fadeInDown 0.8s ease-out forwards", 
+        "fade-in-right": "fadeInRight 0.8s ease-out forwards",
+        "swing": "swing 8s ease-in-out infinite",
+      },
+      backgroundImage: {
+        'gradient-primary': 'var(--gradient-primary)',
+        'gradient-background': 'var(--gradient-background)',
+        'gradient-card': 'var(--gradient-card)',
+      },
+      boxShadow: {
+        'glow': 'var(--shadow-glow)',
+        'glow-hover': 'var(--shadow-glow-hover)',
+        'elegant': 'var(--shadow-elegant)',
+      },
+      transitionTimingFunction: {
+        'smooth': 'var(--transition-smooth)',
+        'spring': 'var(--transition-spring)',
       },
     },
   },
