@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LangAudi - Smart Translation & Notes Browser Extension</title>
+    <meta name="description" content="LangAudi is the ultimate browser extension that translates text, creates smart notes, and reads content aloud. Break down language barriers with AI-powered translation tools.">
+    <meta name="author" content="LangAudi">
+    <meta name="keywords" content="translation, browser extension, notes, AI, language learning, text-to-speech">
+    
+    <meta property="og:title" content="LangAudi - Smart Translation & Notes Browser Extension">
+    <meta property="og:description" content="Translate text, create smart notes, and listen to content with our powerful browser extension. Supporting 100+ languages with AI technology.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@lovable_dev">
+    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* LangAudi Design System */
+        :root {
+            /* Core brand colors - Dark ocean theme with teal accents */
+            --background: 198 45% 9%; /* #0a192f - Deep navy */
+            --foreground: 210 40% 98%; /* #e6f1ff - Light blue-white */
+            --primary: 174 100% 70%; /* #64ffda - Signature teal */
+            --primary-foreground: 198 45% 9%;
+            --secondary: 217 32% 17%; /* #1c2431 - Medium dark blue */
+            --secondary-foreground: 210 40% 98%;
+            --muted: 217 32% 17%;
+            --muted-foreground: 214 16% 65%; /* #a8b2d1 - Muted blue-gray */
+            --accent: 199 89% 48%; /* #4fc3f7 - Light blue accent */
+            --accent-foreground: 198 45% 9%;
+            --border: 217 32% 17%;
+            --ring: 174 100% 70%;
+            --radius: 0.75rem;
+            
+            /* Custom gradients */
+            --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+            --gradient-background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(217 32% 14%) 100%);
+            
+            /* Custom shadows */
+            --shadow-glow: 0 0 20px hsl(var(--primary) / 0.3);
+            --shadow-glow-hover: 0 0 30px hsl(var(--primary) / 0.5);
+            
+            /* Animation values */
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            background: var(--gradient-background);
+            color: hsl(var(--foreground));
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: hsl(var(--background));
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: hsl(var(--primary) / 0.3);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: hsl(var(--primary) / 0.5);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            transition: var(--transition-smooth);
+            padding: 1rem 0;
+        }
+
+        header.scrolled {
+            backdrop-filter: blur(10px);
+            background: hsl(var(--background) / 0.8);
+            border-bottom: 1px solid hsl(var(--primary) / 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .logo i {
+            color: hsl(var(--primary));
+            font-size: 2rem;
+        }
+
+        .gradient-text {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: hsl(var(--muted-foreground));
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition-smooth);
+        }
+
+        .nav-links a:hover {
+            color: hsl(var(--primary));
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            font-weight: 600;
+            text-decoration: none;
+            transition: var(--transition-smooth);
+            border: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .btn-hero {
+            background: var(--gradient-primary);
+            color: hsl(var(--primary-foreground));
+            font-weight: 700;
+            box-shadow: var(--shadow-glow);
+            animation: pulse-glow 2s infinite;
+            padding: 1rem 2rem;
+            font-size: 1.125rem;
+            border-radius: 1rem;
+        }
+
+        .btn-hero:hover {
+            transform: scale(1.05);
+            animation: none;
+            box-shadow: var(--shadow-glow-hover);
+        }
+
+        .btn-browser {
+            background: hsl(var(--primary) / 0.1);
+            border: 1px solid hsl(var(--primary) / 0.3);
+            color: hsl(var(--primary));
+            min-width: 120px;
+        }
+
+        .btn-browser:hover {
+            background: hsl(var(--primary) / 0.2);
+            border-color: hsl(var(--primary) / 0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn-glass {
+            backdrop-filter: blur(10px);
+            background: hsl(var(--background) / 0.8);
+            border: 1px solid hsl(var(--primary) / 0.2);
+            color: hsl(var(--foreground));
+        }
+
+        .btn-glass:hover {
+            border-color: hsl(var(--primary) / 0.4);
+            background: hsl(var(--primary) / 0.1);
+        }
+
+        /* Mobile Menu */
+        .mobile-menu-btn {
+            display: none;
+            color: hsl(var(--primary));
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .mobile-menu {
+            display: none;
+            margin-top: 1rem;
+            padding-bottom: 1rem;
+        }
+
+        .mobile-menu.active {
+            display: block;
+        }
+
+        .mobile-menu ul {
+            list-style: none;
+            margin-bottom: 1rem;
+        }
+
+        .mobile-menu li {
+            margin-bottom: 1rem;
+        }
+
+        .mobile-menu a {
+            color: hsl(var(--muted-foreground));
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition-smooth);
+        }
+
+        .mobile-menu a:hover {
+            color: hsl(var(--primary));
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding-top: 5rem;
+            position: relative;
+            overflow: hidden;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" fill="none"><defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23112240;stop-opacity:1" /><stop offset="100%" style="stop-color:%230a192f;stop-opacity:1" /></linearGradient></defs><rect width="1920" height="1080" fill="url(%23bg)"/></svg>');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: hsl(var(--background) / 0.8);
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 3rem;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .hero-content {
+            text-align: center;
+        }
+
+        .hero-content h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            animation: fadeInDown 0.8s ease-out forwards;
+        }
+
+        .hero-content p {
+            font-size: 1.25rem;
+            color: hsl(var(--muted-foreground));
+            max-width: 40rem;
+            margin: 0 auto 2rem;
+            animation: fadeInUp 0.8s ease-out 0.3s both;
+        }
+
+        .hero-buttons {
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.8s ease-out 0.6s both;
+        }
+
+        .browser-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            animation: fadeInUp 0.8s ease-out 0.9s both;
+        }
+
+        /* Floating elements */
+        .floating {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--accent) / 0.1));
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .floating:nth-child(1) {
+            width: 8rem;
+            height: 8rem;
+            top: 25%;
+            left: 8%;
+            animation-delay: 0s;
+        }
+
+        .floating:nth-child(2) {
+            width: 6rem;
+            height: 6rem;
+            top: 33%;
+            right: 8%;
+            animation-delay: 1s;
+        }
+
+        .floating:nth-child(3) {
+            width: 5rem;
+            height: 5rem;
+            bottom: 25%;
+            left: 17%;
+            animation-delay: 2s;
+        }
+
+        .floating:nth-child(4) {
+            width: 7rem;
+            height: 7rem;
+            bottom: 33%;
+            right: 17%;
+            animation-delay: 3s;
+        }
+
+        /* Laptop Demo */
+        .laptop-demo {
+            max-width: 40rem;
+            margin: 2rem auto;
+            animation: fadeInRight 0.8s ease-out 0.6s both;
+        }
+
+        .laptop {
+            background: linear-gradient(145deg, hsl(var(--secondary)), hsl(var(--secondary) / 0.8));
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            animation: swing 8s ease-in-out infinite;
+        }
+
+        .laptop-screen {
+            background: hsl(var(--background));
+            border-radius: 0.5rem;
+            overflow: hidden;
+            border: 1px solid hsl(var(--primary) / 0.2);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .browser-bar {
+            background: hsl(var(--secondary));
+            padding: 0.75rem;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid hsl(var(--primary));
+        }
+
+        .browser-dots {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .browser-dot {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+        }
+
+        .dot-red { background: #ff5f56; }
+        .dot-yellow { background: #ffbd2e; }
+        .dot-green { background: #27ca3f; }
+
+        .browser-content {
+            padding: 1.5rem;
+            height: 16rem;
+            position: relative;
+        }
+
+        .browser-content h3 {
+            color: hsl(var(--primary));
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .browser-content p {
+            color: hsl(var(--muted-foreground));
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+
+        .demo-text {
+            position: absolute;
+            top: 4rem;
+            left: 1.5rem;
+            max-width: 12rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            transition: var(--transition-smooth);
+        }
+
+        .original-text {
+            background: rgba(255, 189, 46, 0.2);
+            border-left: 4px solid #ffbd2e;
+            animation: showText 16s infinite;
+        }
+
+        .translated-text {
+            background: hsl(var(--primary) / 0.2);
+            border-left: 4px solid hsl(var(--primary));
+            animation: translateText 16s infinite;
+        }
+
+        .ai-prompt {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            max-width: 13rem;
+            padding: 0.75rem;
+            background: hsl(var(--primary) / 0.15);
+            border: 1px solid hsl(var(--primary) / 0.3);
+            border-radius: 0.5rem;
+            color: hsl(var(--primary));
+            font-size: 0.75rem;
+            animation: showPrompt 16s infinite;
+        }
+
+        .notes-popup {
+            position: absolute;
+            top: 50%;
+            right: -16rem;
+            transform: translateY(-50%);
+            width: 16rem;
+            padding: 1rem;
+            background: hsl(var(--foreground));
+            color: hsl(var(--background));
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: showNotes 16s infinite;
+            z-index: 20;
+        }
+
+        .notes-popup h4 {
+            color: hsl(var(--primary));
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .notes-popup ul {
+            list-style: none;
+        }
+
+        .notes-popup li {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .notes-popup li::before {
+            content: '';
+            width: 0.5rem;
+            height: 0.5rem;
+            background: hsl(var(--primary));
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            margin-top: 0.375rem;
+            flex-shrink: 0;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 6rem 0;
+            background: hsl(var(--background) / 0.5);
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-title h2 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title p {
+            font-size: 1.25rem;
+            color: hsl(var(--muted-foreground));
+            max-width: 48rem;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            padding: 2rem;
+            border-radius: 1rem;
+            backdrop-filter: blur(10px);
+            background: hsl(var(--background) / 0.8);
+            border: 1px solid hsl(var(--primary) / 0.2);
+            transition: var(--transition-smooth);
+            opacity: 0;
+            transform: translateY(3rem);
+        }
+
+        .feature-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-0.5rem) scale(1.02);
+            border-color: hsl(var(--primary) / 0.4);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            width: 4rem;
+            height: 4rem;
+            border-radius: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition-smooth);
+        }
+
+        .feature-icon i {
+            font-size: 2rem;
+            color: hsl(var(--background));
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1);
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: hsl(var(--foreground));
+            transition: var(--transition-smooth);
+        }
+
+        .feature-card:hover h3 {
+            color: hsl(var(--primary));
+        }
+
+        .feature-card p {
+            color: hsl(var(--muted-foreground));
+            line-height: 1.6;
+        }
+
+        /* How It Works Section */
+        .how-it-works {
+            padding: 6rem 0;
+            background: linear-gradient(145deg, hsl(var(--secondary) / 0.3), hsl(var(--background)));
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            position: relative;
+        }
+
+        .step {
+            text-align: center;
+            opacity: 0;
+            transform: translateY(3rem);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .step.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .step-number {
+            width: 5rem;
+            height: 5rem;
+            border-radius: 50%;
+            margin: 0 auto 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: hsl(var(--background));
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: var(--transition-smooth);
+            position: relative;
+        }
+
+        .step:hover .step-number {
+            transform: scale(1.1);
+        }
+
+        .step-icon {
+            position: absolute;
+            bottom: -0.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition-smooth);
+        }
+
+        .step:hover .step-icon {
+            transform: translateX(-50%) scale(1.25);
+        }
+
+        .step-icon i {
+            font-size: 1.5rem;
+            color: hsl(var(--primary));
+        }
+
+        .step h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: hsl(var(--foreground));
+            transition: var(--transition-smooth);
+        }
+
+        .step:hover h3 {
+            color: hsl(var(--primary));
+        }
+
+        .step p {
+            color: hsl(var(--muted-foreground));
+            line-height: 1.6;
+        }
+
+        /* CTA Section */
+        .cta {
+            padding: 6rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to right, hsl(var(--primary) / 0.1), hsl(var(--accent) / 0.1), hsl(var(--primary) / 0.1));
+        }
+
+        .cta-content {
+            text-align: center;
+            max-width: 64rem;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        .cta h2 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+
+        .cta p {
+            font-size: 1.25rem;
+            color: hsl(var(--muted-foreground));
+            margin-bottom: 2.5rem;
+            max-width: 32rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .cta-stats {
+            text-align: center;
+        }
+
+        .cta-stats p {
+            color: hsl(var(--muted-foreground));
+            margin-bottom: 1rem;
+        }
+
+        .cta-stats .highlight {
+            color: hsl(var(--primary));
+            font-weight: 600;
+        }
+
+        .cta-ratings {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            color: hsl(var(--muted-foreground));
+            font-size: 0.875rem;
+        }
+
+        /* Footer */
+        footer {
+            background: hsl(var(--secondary) / 0.3);
+            padding: 4rem 0;
+            border-top: 1px solid hsl(var(--primary) / 0.1);
+        }
+
+        .footer-content {
+            text-align: center;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-logo i {
+            color: hsl(var(--primary));
+            font-size: 2rem;
+        }
+
+        .footer-logo span {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            list-style: none;
+        }
+
+        .footer-links a {
+            color: hsl(var(--muted-foreground));
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition-smooth);
+        }
+
+        .footer-links a:hover {
+            color: hsl(var(--primary));
+        }
+
+        .footer-copyright {
+            padding-top: 2rem;
+            border-top: 1px solid hsl(var(--primary) / 0.1);
+            color: hsl(var(--muted-foreground));
+        }
+
+        /* Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-1.25rem) rotate(5deg); }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: var(--shadow-glow); }
+            50% { box-shadow: var(--shadow-glow-hover); }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(1.875rem);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-1.875rem);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(3.125rem);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes swing {
+            0%, 100% { transform: rotate(-1deg); }
+            50% { transform: rotate(1deg); }
+        }
+
+        @keyframes showText {
+            0%, 24% { opacity: 1; transform: translateY(0); }
+            25%, 100% { opacity: 0; transform: translateY(1.25rem); }
+        }
+
+        @keyframes translateText {
+            0%, 24% { opacity: 0; transform: translateY(1.25rem); }
+            25%, 49% { opacity: 1; transform: translateY(0); }
+            50%, 100% { opacity: 0; transform: translateY(1.25rem); }
+        }
+
+        @keyframes showNotes {
+            0%, 49% { 
+                opacity: 0; 
+                transform: translateY(-50%) translateX(0) scale(0.8);
+                right: -16rem;
+            }
+            50%, 90% { 
+                opacity: 1; 
+                transform: translateY(-50%) translateX(-18rem) scale(1);
+                right: -16rem;
+            }
+            91%, 100% { 
+                opacity: 0; 
+                transform: translateY(-50%) translateX(-19rem) scale(0.8);
+                right: -16rem;
+            }
+        }
+
+        @keyframes showPrompt {
+            0%, 59% { opacity: 0; transform: translateY(1.25rem); }
+            60%, 85% { opacity: 1; transform: translateY(0); }
+            86%, 100% { opacity: 0; transform: translateY(1.25rem); }
+        }
+
+        /* Responsive Design */
+        @media (min-width: 1024px) {
+            .hero-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 4rem;
+            }
+
+            .hero-content {
+                text-align: left;
+            }
+
+            .hero-content h1 {
+                font-size: 3.75rem;
+            }
+
+            .browser-buttons {
+                justify-content: flex-start;
+            }
+        }
+
+        @media (max-width: 1023px) {
+            .notes-popup {
+                display: none;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .section-title h2 {
+                font-size: 2rem;
+            }
+
+            .cta h2 {
+                font-size: 2rem;
+            }
+
+            .browser-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn-browser {
+                width: 12.5rem;
+                justify-content: center;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+
+            .cta-ratings {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .footer-links {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header & Navigation -->
+    <header id="header">
+        <div class="container">
+            <nav>
+                <div class="logo">
+                    <i class="fas fa-language"></i>
+                    <span class="gradient-text">LangAudi</span>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="#" onclick="scrollToTop(event)">Home</a></li>
+                    <li><a href="#features" onclick="smoothScroll(event, '#features')">Features</a></li>
+                    <li><a href="#how-it-works" onclick="smoothScroll(event, '#how-it-works')">How It Works</a></li>
+                    <li><a href="#download" onclick="smoothScroll(event, '#download')">Download</a></li>
+                </ul>
+                <a href="#download" class="btn btn-hero" onclick="smoothScroll(event, '#download')">Download</a>
+                <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars" id="menu-icon"></i>
+                </button>
+            </nav>
+            <div class="mobile-menu" id="mobile-menu">
+                <ul>
+                    <li><a href="#" onclick="scrollToTop(event); closeMobileMenu()">Home</a></li>
+                    <li><a href="#features" onclick="smoothScroll(event, '#features'); closeMobileMenu()">Features</a></li>
+                    <li><a href="#how-it-works" onclick="smoothScroll(event, '#how-it-works'); closeMobileMenu()">How It Works</a></li>
+                    <li><a href="#download" onclick="smoothScroll(event, '#download'); closeMobileMenu()">Download</a></li>
+                </ul>
+                <a href="#download" class="btn btn-hero" style="width: 100%;" onclick="smoothScroll(event, '#download'); closeMobileMenu()">Download</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="floating"></div>
+        <div class="floating"></div>
+        <div class="floating"></div>
+        <div class="floating"></div>
+        
+        <div class="container">
+            <div class="hero-grid">
+                <div class="hero-content">
+                    <h1>
+                        <span class="gradient-text">Translate</span>, Note-Take, 
+                        <span class="gradient-text">and Listen</span>
+                    </h1>
+                    <p>LangAudi is the ultimate browser extension that translates text, creates smart notes from translations, and reads content aloud. Enhance your browsing experience today!</p>
+                    
+                    <div class="hero-buttons">
+                        <a href="#download" class="btn btn-hero" onclick="smoothScroll(event, '#download')">
+                            <i class="fas fa-download"></i> Download Now
+                        </a>
+                    </div>
+
+                    <div class="browser-buttons">
+                        <a href="#" class="btn btn-browser">
+                            <i class="fab fa-chrome"></i> Chrome
+                        </a>
+                        <a href="#" class="btn btn-browser">
+                            <i class="fab fa-firefox"></i> Firefox
+                        </a>
+                        <a href="#" class="btn btn-browser">
+                            <i class="fab fa-edge"></i> Edge
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="laptop-demo">
+                    <div class="laptop">
+                        <div class="laptop-screen">
+                            <div class="browser-bar">
+                                <div class="browser-dots">
+                                    <div class="browser-dot dot-red"></div>
+                                    <div class="browser-dot dot-yellow"></div>
+                                    <div class="browser-dot dot-green"></div>
+                                </div>
+                            </div>
+                            <div class="browser-content">
+                                <h3>Foreign Language Website</h3>
+                                <p>This page contains text in a foreign language...</p>
+                                
+                                <div class="demo-text original-text">
+                                    <strong>Original Text:</strong>
+                                    <p>El aprendizaje de idiomas es fundamental para comprender diferentes culturas y ampliar nuestras perspectivas del mundo.</p>
+                                </div>
+                                
+                                <div class="demo-text translated-text">
+                                    <strong>Translated Text:</strong>
+                                    <p>Language learning is essential to understand different cultures and broaden our world perspectives.</p>
+                                </div>
+
+                                <div class="ai-prompt">
+                                    <i class="fas fa-robot"></i>
+                                    Generate smart notes from this translation?
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="notes-popup">
+                        <h4>Smart Notes</h4>
+                        <ul>
+                            <li>Language learning is essential</li>
+                            <li>Helps understand different cultures</li>
+                            <li>Broadens world perspectives</li>
+                            <li>Key for global communication</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-title">
+                <h2 class="gradient-text">Powerful Features</h2>
+                <p>LangAudi offers everything you need to understand and work with content in any language</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    <h3>Instant Translation</h3>
+                    <p>Translate text on any webpage with a simple click. Supports over 100 languages with high accuracy.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--primary)));">
+                        <i class="fas fa-sticky-note"></i>
+                    </div>
+                    <h3>Smart Notes</h3>
+                    <p>Automatically generate concise notes from translated text. Capture key points and important information.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));">
+                        <i class="fas fa-volume-up"></i>
+                    </div>
+                    <h3>Text-to-Speech</h3>
+                    <p>Listen to translations read aloud in natural sounding voices. Perfect for learning pronunciation.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--primary)));">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3>AI-Powered Prompts</h3>
+                    <p>Get intelligent suggestions for note-taking and content summarization with our AI technology.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="how-it-works">
+        <div class="container">
+            <div class="section-title">
+                <h2 class="gradient-text">How LangAudi Works</h2>
+                <p>Our extension makes it incredibly easy to translate, note-take, and listen to content</p>
+            </div>
+            <div class="steps-grid">
+                <div class="step">
+                    <div class="step-number" style="background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));">
+                        1
+                        <div class="step-icon" style="background: linear-gradient(135deg, hsl(var(--primary) / 0.2), hsl(var(--accent) / 0.2));">
+                            <i class="fas fa-mouse-pointer"></i>
+                        </div>
+                    </div>
+                    <h3>Select Text</h3>
+                    <p>Highlight any text on a webpage that you want to translate</p>
+                </div>
+                <div class="step">
+                    <div class="step-number" style="background: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--primary)));">
+                        2
+                        <div class="step-icon" style="background: linear-gradient(135deg, hsl(var(--accent) / 0.2), hsl(var(--primary) / 0.2));">
+                            <i class="fas fa-redo"></i>
+                        </div>
+                    </div>
+                    <h3>Click Translate</h3>
+                    <p>Use the LangAudi extension to instantly translate the text</p>
+                </div>
+                <div class="step">
+                    <div class="step-number" style="background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));">
+                        3
+                        <div class="step-icon" style="background: linear-gradient(135deg, hsl(var(--primary) / 0.2), hsl(var(--accent) / 0.2));">
+                            <i class="fas fa-file-text"></i>
+                        </div>
+                    </div>
+                    <h3>Get Smart Notes</h3>
+                    <p>Automatically generate notes from the translated content</p>
+                </div>
+                <div class="step">
+                    <div class="step-number" style="background: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--primary)));">
+                        4
+                        <div class="step-icon" style="background: linear-gradient(135deg, hsl(var(--accent) / 0.2), hsl(var(--primary) / 0.2));">
+                            <i class="fas fa-sparkles"></i>
+                        </div>
+                    </div>
+                    <h3>AI Prompts</h3>
+                    <p>Receive intelligent suggestions for better note organization</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section id="download" class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Enhance Your <span class="gradient-text">Browsing Experience</span></h2>
+                <p>Download LangAudi today and break down language barriers with our powerful translation and note-taking tools.</p>
+                
+                <div class="cta-buttons">
+                    <a href="#" class="btn btn-hero">
+                        <i class="fas fa-download"></i> Download Now
+                    </a>
+                    <a href="#features" class="btn btn-glass" onclick="smoothScroll(event, '#features')">
+                        Learn More <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+
+                <div class="cta-stats">
+                    <p>Trusted by over <span class="highlight">50,000+</span> users worldwide</p>
+                    <div class="cta-ratings">
+                        <span>★★★★★ Chrome Store</span>
+                        <span>★★★★★ Firefox Add-ons</span>
+                        <span>★★★★★ Edge Extensions</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <i class="fas fa-language"></i>
+                    <span class="gradient-text">LangAudi</span>
+                </div>
+                <ul class="footer-links">
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="#">Support</a></li>
+                </ul>
+                <div class="footer-copyright">
+                    <p>© 2024 LangAudi. All rights reserved. Made with ❤️ for global communication.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Header scroll effect
+        window.addEventListener('scroll', function() {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuIcon = document.getElementById('menu-icon');
+            
+            if (mobileMenu.classList.contains('active')) {
+                mobileMenu.classList.remove('active');
+                menuIcon.classList.replace('fa-times', 'fa-bars');
+            } else {
+                mobileMenu.classList.add('active');
+                menuIcon.classList.replace('fa-bars', 'fa-times');
+            }
+        }
+
+        function closeMobileMenu() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuIcon = document.getElementById('menu-icon');
+            mobileMenu.classList.remove('active');
+            menuIcon.classList.replace('fa-times', 'fa-bars');
+        }
+
+        // Smooth scrolling
+        function smoothScroll(event, target) {
+            event.preventDefault();
+            const element = document.querySelector(target);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function scrollToTop(event) {
+            event.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.2,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        // Observe feature cards
+        document.addEventListener('DOMContentLoaded', function() {
+            const featureCards = document.querySelectorAll('.feature-card');
+            const steps = document.querySelectorAll('.step');
+            
+            featureCards.forEach((card, index) => {
+                card.style.transitionDelay = `${index * 200}ms`;
+                observer.observe(card);
+            });
+            
+            steps.forEach((step, index) => {
+                step.style.transitionDelay = `${index * 150}ms`;
+                observer.observe(step);
+            });
+        });
+    </script>
+</body>
+</html>
